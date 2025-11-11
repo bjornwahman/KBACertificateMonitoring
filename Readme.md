@@ -23,14 +23,15 @@ Detta repo innehåller ett set oförseglade Management Pack för System Center O
 ### Discovery
 - `Kungsbacka.Certificate.CertificateWatcher.Discovery` körs på samtliga management-servrar en gång per dygn.
 - Läser `CertificateWatchers.json`, skapar instanser av klassen och kopplar dem till respektive server.
-- Bäddar in skriptet `Discover-KBACertificateWatchers.ps1` från `managementpack/scripts/`.
+- Bäddar in skriptet `Discover-KBACertificateWatchers.ps1` från `managementpack/scripts/` via `$IncludeFileContent` så att sjä
+  lva XML-filen inte innehåller PowerShell-koden.
 
 ### Monitoring
 - `Kungsbacka.Certificate.CertificateExpiry.Monitoring` ligger i en egen fil för att varje framtida monitor ska kunna versioneras separat.
 - Monitorn `Kungsbacka.Certificate.CertificateExpiry.Monitor` använder en PowerShell tvåtillståndsmonitor riktad mot certifikatklassen.
 - Läser `CertificateWatchers.json` för att hämta tröskelvärde (dagar kvar) per certifikat och faller tillbaka till värdet på instansen (standard 30 dagar).
 - Skapar ett larm med texten från property-bagen när certifikatet närmar sig utgång eller inte kan läsas.
-- Bäddar in skriptet `Test-KBACertificateLifetime.ps1` från `managementpack/scripts/`.
+- Bäddar in skriptet `Test-KBACertificateLifetime.ps1` från `managementpack/scripts/` via `$IncludeFileContent`-referensen.
 
 ### Views
 - State-vy (`Kungsbacka.Certificate.CertificateWatcher.StateView`) som visar status för de upptäckta certifikaten.
