@@ -29,19 +29,9 @@
       </Reference>
     </References>
   </Manifest>
-  <TypeDefinitions/>
-  <Monitoring>
-    <Discoveries>
-      <Discovery ID="Kungsbacka.Certificate.CertificateWatcher.Discovery" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
-        <Category>Discovery</Category>
-        <DiscoveryTypes>
-          <DiscoveryClass TypeID="CertLib!Kungsbacka.Certificate.CertificateWatcher"/>
-        </DiscoveryTypes>
-        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
-          <IntervalSeconds>86400</IntervalSeconds>
-          <SyncTime>00:15</SyncTime>
-          <ScriptName>Discover-KBACertificateWatchers.ps1</ScriptName>
-          <ScriptBody>
+  <Files>
+    <File ID="DiscoverKBACertificateWatchers_ps1" Accessibility="Public" HasNullStream="false">
+      <Contents><![CDATA[
 param($SourceId, $ManagedEntityId, $TargetId)
 
 $ErrorActionPreference = "Stop"
@@ -49,7 +39,7 @@ $ErrorActionPreference = "Stop"
 $api = New-Object -ComObject "MOM.ScriptAPI"
 $discoveryData = $api.CreateDiscoveryData(0, $SourceId, $ManagedEntityId)
 
-$configPath = "C:\\ProgramData\\Kungsbacka\\CertificateWatchers.json"
+$configPath = "C:\ProgramData\Kungsbacka\CertificateWatchers.json"
 
 try {
     if (-not (Test-Path -Path $configPath -PathType Leaf)) {
@@ -102,7 +92,22 @@ catch {
 }
 
 $discoveryData
-          </ScriptBody>
+]]></Contents>
+    </File>
+  </Files>
+  <TypeDefinitions/>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="Kungsbacka.Certificate.CertificateWatcher.Discovery" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="CertLib!Kungsbacka.Certificate.CertificateWatcher"/>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
+          <IntervalSeconds>86400</IntervalSeconds>
+          <SyncTime>00:15</SyncTime>
+          <ScriptName>Discover-KBACertificateWatchers.ps1</ScriptName>
+          <ScriptBody>$FileContent/DiscoverKBACertificateWatchers_ps1$</ScriptBody>
           <TimeoutSeconds>300</TimeoutSeconds>
         </DataSource>
       </Discovery>
@@ -124,3 +129,4 @@ $discoveryData
     </LanguagePack>
   </LanguagePacks>
 </ManagementPack>
+

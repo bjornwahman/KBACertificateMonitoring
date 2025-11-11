@@ -2,10 +2,10 @@
 <ManagementPack ContentReadable="true" SchemaVersion="2.0">
   <Manifest>
     <Identity>
-      <ID>Kungsbacka.Certificate.Monitoring</ID>
+      <ID>Kungsbacka.Certificate.CertificateExpiry.Monitoring</ID>
       <Version>1.0.0.0</Version>
     </Identity>
-    <Name>Kungsbacka Certificate Monitoring</Name>
+    <Name>Kungsbacka Certificate Expiry Monitoring</Name>
     <References>
       <Reference Alias="System">
         <ID>System.Library</ID>
@@ -29,26 +29,9 @@
       </Reference>
     </References>
   </Manifest>
-  <TypeDefinitions/>
-  <Monitoring>
-    <Monitors>
-      <UnitMonitor ID="Kungsbacka.Certificate.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="CertLib!Kungsbacka.Certificate.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
-        <Category>AvailabilityHealth</Category>
-        <AlertSettings AlertMessage="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage">
-          <AlertOnState>Error</AlertOnState>
-          <AutoResolve>true</AutoResolve>
-          <AlertPriority>Normal</AlertPriority>
-          <AlertSeverity>Error</AlertSeverity>
-        </AlertSettings>
-        <OperationalStates>
-          <OperationalState ID="UnderThreshold" MonitorTypeStateID="Success" HealthState="Success"/>
-          <OperationalState ID="OverThreshold" MonitorTypeStateID="Error" HealthState="Error"/>
-        </OperationalStates>
-        <Configuration>
-          <IntervalSeconds>3600</IntervalSeconds>
-          <SyncTime/>
-          <ScriptName>Test-KBACertificateLifetime.ps1</ScriptName>
-          <ScriptBody>
+  <Files>
+    <File ID="TestKBACertificateLifetime_ps1" Accessibility="Public" HasNullStream="false">
+      <Contents><![CDATA[
 param($hostname, $port, $thresholdFromInstance)
 
 $ErrorActionPreference = "Stop"
@@ -59,7 +42,7 @@ $port = [int]$port
 $ScomAPI = New-Object -ComObject "MOM.ScriptAPI"
 $PropertyBag = $ScomAPI.CreatePropertyBag()
 
-$configPath = "C:\\ProgramData\\Kungsbacka\\CertificateWatchers.json"
+$configPath = "C:\ProgramData\Kungsbacka\CertificateWatchers.json"
 $threshold = 30
 
 if ($thresholdFromInstance -and ($thresholdFromInstance -as [int])) {
@@ -125,7 +108,29 @@ finally {
 }
 
 $PropertyBag
-          </ScriptBody>
+]]></Contents>
+    </File>
+  </Files>
+  <TypeDefinitions/>
+  <Monitoring>
+    <Monitors>
+      <UnitMonitor ID="Kungsbacka.Certificate.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="CertLib!Kungsbacka.Certificate.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="UnderThreshold" MonitorTypeStateID="Success" HealthState="Success"/>
+          <OperationalState ID="OverThreshold" MonitorTypeStateID="Error" HealthState="Error"/>
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>3600</IntervalSeconds>
+          <SyncTime/>
+          <ScriptName>Test-KBACertificateLifetime.ps1</ScriptName>
+          <ScriptBody>$FileContent/TestKBACertificateLifetime_ps1$</ScriptBody>
           <Arguments>"$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$" "$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$" "$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/ThresholdDays$"</Arguments>
           <TimeoutSeconds>300</TimeoutSeconds>
           <ErrorPolicy>Reset</ErrorPolicy>
@@ -144,8 +149,8 @@ $PropertyBag
   <LanguagePacks>
     <LanguagePack ID="SV" IsDefault="true">
       <DisplayStrings>
-        <DisplayString ElementID="Kungsbacka.Certificate.Monitoring">
-          <Name>Kungsbacka Certificate Monitoring</Name>
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateExpiry.Monitoring">
+          <Name>Kungsbacka Certificate Expiry Monitoring</Name>
           <Description>Övervakar utgångsdatumet för de certifikat som definieras i CertificateWatchers.json.</Description>
         </DisplayString>
         <DisplayString ElementID="Kungsbacka.Certificate.CertificateExpiry.Monitor">
@@ -160,3 +165,4 @@ $PropertyBag
     </LanguagePack>
   </LanguagePacks>
 </ManagementPack>
+
