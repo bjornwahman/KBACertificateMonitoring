@@ -29,7 +29,6 @@ Detta repo innehåller ett set oförseglade Management Pack för System Center O
 
 ### Views
 - State-vy (`Kungsbacka.Certificate.CertificateWatcher.StateView`) som visar status för det upptäckta certifikatet.
-=======
 Detta repo innehåller ett oförseglat Management Pack för System Center Operations Manager (SCOM) som övervakar SSL-certifikatet för `rbok.kungsbacka.se`.
 
 ## Innehåll
@@ -59,7 +58,6 @@ Vill du lägga till fler certifikat i framtiden kan du:
 3. Utöka vy-paketet med ytterligare vyer eller kolumner för de nya certifikaten.
 
 Kom ihåg att uppdatera `LanguagePack`-sektionerna i respektive Management Pack med namn och beskrivningar för varje nytt objekt.
-=======
 1. Kopiera discovery-sektionen och uppdatera `Hostname` och `Port` för det nya certifikatet.
 2. Duplicera motsvarande monitor-block och uppdatera ID:n, display-strängar samt hårdkodade värden.
 3. Lägg till en ny vy (eller uppdatera befintlig) för att visa det nya certifikatet.
