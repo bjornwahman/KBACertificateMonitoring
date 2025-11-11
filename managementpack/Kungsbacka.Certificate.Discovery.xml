@@ -29,6 +29,72 @@
       </Reference>
     </References>
   </Manifest>
+  <Files>
+    <File ID="DiscoverKBACertificateWatchers_ps1" Accessibility="Public" HasNullStream="false">
+      <Contents><![CDATA[
+param($SourceId, $ManagedEntityId, $TargetId)
+
+$ErrorActionPreference = "Stop"
+
+$api = New-Object -ComObject "MOM.ScriptAPI"
+$discoveryData = $api.CreateDiscoveryData(0, $SourceId, $ManagedEntityId)
+
+$configPath = "C:\ProgramData\Kungsbacka\CertificateWatchers.json"
+
+try {
+    if (-not (Test-Path -Path $configPath -PathType Leaf)) {
+        throw "Konfigurationsfilen '$configPath' kunde inte hittas."
+    }
+
+    $json = Get-Content -Path $configPath -Raw -Encoding UTF8
+
+    if ([string]::IsNullOrWhiteSpace($json)) {
+        throw "Konfigurationsfilen '$configPath' är tom."
+    }
+
+    $entries = $json | ConvertFrom-Json
+
+    foreach ($entry in @($entries)) {
+        if (-not $entry.hostname) {
+            $api.LogScriptEvent("Discover-KBACertificateWatchers", 4001, 2, "En post saknar 'hostname' och hoppar över.")
+            continue
+        }
+
+        $hostname = [string]$entry.hostname
+
+        $port = 443
+        if ($entry.PSObject.Properties['port']) {
+            $port = [int]$entry.port
+        }
+
+        $threshold = 30
+        if ($entry.PSObject.Properties['thresholdDays']) {
+            $threshold = [int]$entry.thresholdDays
+        }
+        $displayName = if ($entry.displayName) { [string]$entry.displayName } else { "$hostname certificate" }
+
+        $instance = $discoveryData.CreateClassInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']$")
+        $instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", $displayName)
+        $instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$", $hostname)
+        $instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$", $port)
+        $instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/ThresholdDays$", $threshold)
+
+        $discoveryData.AddInstance($instance)
+
+        $relationship = $discoveryData.CreateRelationshipInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcherHosts']$")
+        $relationship.Source = $TargetId
+        $relationship.Target = $instance
+        $discoveryData.AddInstance($relationship)
+    }
+}
+catch {
+    $api.LogScriptEvent("Discover-KBACertificateWatchers", 4000, 1, "Misslyckades med att läsa '$configPath'. Fel: $($_.Exception.Message)")
+}
+
+$discoveryData
+]]></Contents>
+    </File>
+  </Files>
   <TypeDefinitions/>
   <Monitoring>
     <Discoveries>
@@ -40,30 +106,8 @@
         <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
           <IntervalSeconds>86400</IntervalSeconds>
           <SyncTime>00:15</SyncTime>
-          <ScriptName>Discover-KBACertificateWatcher.ps1</ScriptName>
-          <ScriptBody>
-param($SourceId, $ManagedEntityId, $TargetId)
-
-$api = New-Object -ComObject "MOM.ScriptAPI"
-$discoveryData = $api.CreateDiscoveryData(0, $SourceId, $ManagedEntityId)
-
-$hostname = "rbok.kungsbacka.se"
-$port = 443
-
-$instance = $discoveryData.CreateClassInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']$")
-$instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", "rbok.kungsbacka.se certificate")
-$instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$", $hostname)
-$instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$", $port)
-
-$discoveryData.AddInstance($instance)
-
-$relationship = $discoveryData.CreateRelationshipInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcherHosts']$")
-$relationship.Source = $TargetId
-$relationship.Target = $instance
-$discoveryData.AddInstance($relationship)
-
-$discoveryData
-          </ScriptBody>
+          <ScriptName>Discover-KBACertificateWatchers.ps1</ScriptName>
+          <ScriptBody>$FileContent/DiscoverKBACertificateWatchers_ps1$</ScriptBody>
           <TimeoutSeconds>300</TimeoutSeconds>
         </DataSource>
       </Discovery>
@@ -75,13 +119,14 @@ $discoveryData
       <DisplayStrings>
         <DisplayString ElementID="Kungsbacka.Certificate.Discovery">
           <Name>Kungsbacka Certificate Discovery</Name>
-          <Description>Upptäcker certifikatsinstansen för rbok.kungsbacka.se.</Description>
+          <Description>Upptäcker certifikatsinstanser baserat på innehållet i CertificateWatchers.json.</Description>
         </DisplayString>
         <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcher.Discovery">
-          <Name>Upptäck rbok.kungsbacka.se certifikat</Name>
-          <Description>Skapar instansen av certifikatsklassen för rbok.kungsbacka.se.</Description>
+          <Name>Upptäck SSL-certifikat från JSON-konfiguration</Name>
+          <Description>Skapar certifikatsinstanser enligt definitionerna i CertificateWatchers.json.</Description>
         </DisplayString>
       </DisplayStrings>
     </LanguagePack>
   </LanguagePacks>
 </ManagementPack>
+

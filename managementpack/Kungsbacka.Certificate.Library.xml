@@ -25,6 +25,7 @@
         <ClassType ID="Kungsbacka.Certificate.CertificateWatcher" Accessibility="Public" Abstract="false" Base="System!System.LogicalEntity" Hosted="true" Singleton="false">
           <Property ID="Hostname" Key="true" Type="string"/>
           <Property ID="Port" Type="int"/>
+          <Property ID="ThresholdDays" Type="int"/>
         </ClassType>
       </ClassTypes>
       <RelationshipTypes>
@@ -45,8 +46,8 @@
           <Description>Delad klassdefinition för certifikatsövervakning.</Description>
         </DisplayString>
         <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcher">
-          <Name>Certifikatsinstans</Name>
-          <Description>Representerar ett övervakat SSL-certifikat.</Description>
+          <Name>SSL-certifikatinstans</Name>
+          <Description>Representerar ett övervakat SSL-certifikat med värdnamn, port och tröskelvärde.</Description>
         </DisplayString>
         <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcherHosts">
           <Name>Managementserver till certifikat</Name>
