@@ -62,8 +62,8 @@
           <Description>Presenterar vyer för certifikatsövervakningen.</Description>
         </DisplayString>
         <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcher.StateView">
-          <Name>SSL-certifikatstatus</Name>
-          <Description>Visar tillståndet för de övervakade certifikaten.</Description>
+          <Name>rbok.kungsbacka.se certifikatstatus</Name>
+          <Description>Visar tillståndet för rbok.kungsbacka.se-certifikatet.</Description>
         </DisplayString>
       </DisplayStrings>
     </LanguagePack>
