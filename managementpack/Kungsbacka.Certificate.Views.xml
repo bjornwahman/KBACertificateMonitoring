@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack ContentReadable="true" SchemaVersion="2.0">
+  <Manifest>
+    <Identity>
+      <ID>Kungsbacka.Certificate.Views</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>Kungsbacka Certificate Views</Name>
+    <References>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8437.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="CertLib">
+        <ID>Kungsbacka.Certificate.Library</ID>
+        <Version>1.0.0.0</Version>
+        <PublicKeyToken>0000000000000000</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions/>
+  <Monitoring>
+    <Views>
+      <View ID="Kungsbacka.Certificate.CertificateWatcher.StateView" Accessibility="Public" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" TypeID="System!System.StateViewType">
+        <Category>Operations</Category>
+        <Criteria>
+          <Object>
+            <Class>$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']$</Class>
+          </Object>
+        </Criteria>
+        <Presentation>
+          <ColumnDefinitions>
+            <ColumnDefinition>
+              <TypeID>System!System.Entity</TypeID>
+              <ColumnID>DisplayName</ColumnID>
+            </ColumnDefinition>
+            <ColumnDefinition>
+              <TypeID>CertLib!Kungsbacka.Certificate.CertificateWatcher</TypeID>
+              <ColumnID>Hostname</ColumnID>
+            </ColumnDefinition>
+            <ColumnDefinition>
+              <TypeID>CertLib!Kungsbacka.Certificate.CertificateWatcher</TypeID>
+              <ColumnID>Port</ColumnID>
+            </ColumnDefinition>
+          </ColumnDefinitions>
+        </Presentation>
+      </View>
+    </Views>
+  </Monitoring>
+  <Presentation/>
+  <LanguagePacks>
+    <LanguagePack ID="SV" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Kungsbacka.Certificate.Views">
+          <Name>Kungsbacka Certificate Views</Name>
+          <Description>Presenterar vyer för certifikatsövervakningen.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcher.StateView">
+          <Name>rbok.kungsbacka.se certifikatstatus</Name>
+          <Description>Visar tillståndet för rbok.kungsbacka.se-certifikatet.</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
