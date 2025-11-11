@@ -1,0 +1,14 @@
+[
+  {
+    "displayName": "rbok.kungsbacka.se certificate",
+    "hostname": "rbok.kungsbacka.se",
+    "port": 443,
+    "thresholdDays": 30
+  },
+  {
+    "displayName": "passbolt.kba.local certificate",
+    "hostname": "passbolt.kba.local",
+    "port": 443,
+    "thresholdDays": 30
+  }
+]
