@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack ContentReadable="true" SchemaVersion="2.0">
+  <Manifest>
+    <Identity>
+      <ID>Kungsbacka.CertificateMonitoring</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>Kungsbacka Certificate Monitoring</Name>
+    <References>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8437.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Kungsbacka.CertificateMonitoring.CertificateWatcher" Accessibility="Public" Abstract="false" Base="System!System.LogicalEntity" Hosted="true" Singleton="false">
+          <Property ID="Hostname" Key="true" Type="string"/>
+          <Property ID="Port" Type="int"/>
+        </ClassType>
+      </ClassTypes>
+      <RelationshipTypes>
+        <RelationshipType ID="Kungsbacka.CertificateMonitoring.CertificateWatcherHosts" Accessibility="Internal" Abstract="false" Base="System!System.Hosting">
+          <Source ID="Source" Type="SC!Microsoft.SystemCenter.ManagementServer" MinCardinality="1" MaxCardinality="1"/>
+          <Target ID="Target" Type="Kungsbacka.CertificateMonitoring.CertificateWatcher" MinCardinality="0" MaxCardinality="n"/>
+        </RelationshipType>
+      </RelationshipTypes>
+    </EntityTypes>
+  </TypeDefinitions>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="Kungsbacka.CertificateMonitoring.CertificateWatcher.Discovery" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="Kungsbacka.CertificateMonitoring.CertificateWatcher"/>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
+          <IntervalSeconds>86400</IntervalSeconds>
+          <SyncTime>00:15</SyncTime>
+          <ScriptName>Discover-KBACertificateWatcher.ps1</ScriptName>
+          <ScriptBody>
+param($SourceId, $ManagedEntityId, $TargetId)
+
+$api = New-Object -ComObject "MOM.ScriptAPI"
+$discoveryData = $api.CreateDiscoveryData(0, $SourceId, $ManagedEntityId)
+
+$hostname = "rbok.kungsbacka.se"
+$port = 443
+
+$instance = $discoveryData.CreateClassInstance("$MPElement[Name='Kungsbacka.CertificateMonitoring.CertificateWatcher']$")
+$instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", "rbok.kungsbacka.se certificate")
+$instance.AddProperty("$MPElement[Name='Kungsbacka.CertificateMonitoring.CertificateWatcher']/Hostname$", $hostname)
+$instance.AddProperty("$MPElement[Name='Kungsbacka.CertificateMonitoring.CertificateWatcher']/Port$", $port)
+
+$discoveryData.AddInstance($instance)
+
+$relationship = $discoveryData.CreateRelationshipInstance("$MPElement[Name='Kungsbacka.CertificateMonitoring.CertificateWatcherHosts']$")
+$relationship.Source = $TargetId
+$relationship.Target = $instance
+$discoveryData.AddInstance($relationship)
+
+$discoveryData
+          </ScriptBody>
+          <TimeoutSeconds>300</TimeoutSeconds>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+    <Monitors>
+      <UnitMonitor ID="Kungsbacka.CertificateMonitoring.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="Kungsbacka.CertificateMonitoring.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Kungsbacka.CertificateMonitoring.CertificateExpiry.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="UnderThreshold" MonitorTypeStateID="Success" HealthState="Success"/>
+          <OperationalState ID="OverThreshold" MonitorTypeStateID="Error" HealthState="Error"/>
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>3600</IntervalSeconds>
+          <SyncTime/>
+          <ScriptName>Test-KBACertificateLifetime.ps1</ScriptName>
+          <ScriptBody>
+param($hostname, $port)
+
+$ErrorActionPreference = "Stop"
+
+$threshold = 30
+$port = [int]$port
+
+$ScomAPI = New-Object -ComObject "MOM.ScriptAPI"
+$PropertyBag = $ScomAPI.CreatePropertyBag()
+
+$tcpClient = $null
+$sslStream = $null
+
+try {
+    $tcpClient = New-Object System.Net.Sockets.TcpClient($hostname, $port)
+    $sslStream = New-Object System.Net.Security.SslStream($tcpClient.GetStream(), $false, { $true })
+    $sslStream.AuthenticateAsClient($hostname)
+
+    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 $sslStream.RemoteCertificate
+    $daysRemaining = [math]::Floor(($cert.NotAfter - (Get-Date)).TotalDays)
+
+    if ($daysRemaining -le $threshold) {
+        $state = "OverThreshold"
+    }
+    else {
+        $state = "UnderThreshold"
+    }
+
+    $PropertyBag.AddValue("State", $state)
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", $daysRemaining)
+    $PropertyBag.AddValue("NotAfter", $cert.NotAfter.ToString("O"))
+    $PropertyBag.AddValue("MessageText", "Certifikat för $hostname går ut $($cert.NotAfter) (Dagar kvar: $daysRemaining)")
+}
+catch {
+    $PropertyBag.AddValue("State", "OverThreshold")
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", -1)
+    $PropertyBag.AddValue("NotAfter", "")
+    $PropertyBag.AddValue("MessageText", "Kunde inte läsa certifikat för $hostname. Fel: $($_.Exception.Message)")
+}
+finally {
+    if ($sslStream) { $sslStream.Dispose() }
+    if ($tcpClient) { $tcpClient.Dispose() }
+}
+
+$PropertyBag
+          </ScriptBody>
+          <Arguments>"$Target/Property[Type='Kungsbacka.CertificateMonitoring.CertificateWatcher']/Hostname$" "$Target/Property[Type='Kungsbacka.CertificateMonitoring.CertificateWatcher']/Port$"</Arguments>
+          <TimeoutSeconds>300</TimeoutSeconds>
+          <ErrorPolicy>Reset</ErrorPolicy>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+    <Overrides/>
+    <Views>
+      <View ID="Kungsbacka.CertificateMonitoring.CertificateWatcher.StateView" Accessibility="Public" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" TypeID="System!System.StateViewType">
+        <Category>Operations</Category>
+        <Criteria>
+          <Object>
+            <Class>\$MPElement[Name='Kungsbacka.CertificateMonitoring.CertificateWatcher']$</Class>
+          </Object>
+        </Criteria>
+        <Presentation>
+          <ColumnDefinitions>
+            <ColumnDefinition>
+              <TypeID>System!System.Entity</TypeID>
+              <ColumnID>DisplayName</ColumnID>
+            </ColumnDefinition>
+            <ColumnDefinition>
+              <TypeID>Kungsbacka.CertificateMonitoring.CertificateWatcher</TypeID>
+              <ColumnID>Hostname</ColumnID>
+            </ColumnDefinition>
+            <ColumnDefinition>
+              <TypeID>Kungsbacka.CertificateMonitoring.CertificateWatcher</TypeID>
+              <ColumnID>Port</ColumnID>
+            </ColumnDefinition>
+          </ColumnDefinitions>
+        </Presentation>
+      </View>
+    </Views>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="Kungsbacka.CertificateMonitoring.CertificateExpiry.Monitor.AlertMessage"/>
+    </StringResources>
+    <NamedStrings>
+      <NamedString ID="DisplayString.Monitors.Kungsbacka.CertificateMonitoring.CertificateExpiry.Monitor.AlertMessage"/>
+    </NamedStrings>
+    <ConsoleTasks/>
+    <ImageReferences/>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="SV" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Kungsbacka.CertificateMonitoring">
+          <Name>Kungsbacka Certificate Monitoring</Name>
+          <Description>Övervakar certifikatets utgångsdatum för rbok.kungsbacka.se.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.CertificateMonitoring.CertificateWatcher">
+          <Name>rbok.kungsbacka.se certifikat</Name>
+          <Description>Representerar SSL-certifikatet för rbok.kungsbacka.se.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.CertificateMonitoring.CertificateWatcher.Discovery">
+          <Name>Upptäck rbok.kungsbacka.se certifikat</Name>
+          <Description>Skapar en instans av övervakningsklassen för rbok.kungsbacka.se-certifikatet.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.CertificateMonitoring.CertificateExpiry.Monitor">
+          <Name>Övervakning av certifikatets utgångsdatum</Name>
+          <Description>Kontrollerar SSL-certifikatet för rbok.kungsbacka.se och varnar när det är nära utgång.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.CertificateMonitoring.CertificateWatcher.StateView">
+          <Name>rbok.kungsbacka.se certifikatstatus</Name>
+          <Description>Visar tillståndet för rbok.kungsbacka.se-certifikatet.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.CertificateMonitoring.CertificateExpiry.Monitor.AlertMessage">
+          <Name>Certifikat för rbok.kungsbacka.se är på väg att gå ut</Name>
+          <Description>Certifikat för rbok.kungsbacka.se är på väg att gå ut eller kunde inte läsas.</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
