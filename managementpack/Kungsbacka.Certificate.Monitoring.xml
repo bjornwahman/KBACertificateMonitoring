@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack ContentReadable="true" SchemaVersion="2.0">
+  <Manifest>
+    <Identity>
+      <ID>Kungsbacka.Certificate.Monitoring</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>Kungsbacka Certificate Monitoring</Name>
+    <References>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="CertLib">
+        <ID>Kungsbacka.Certificate.Library</ID>
+        <Version>1.0.0.0</Version>
+        <PublicKeyToken>0000000000000000</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions/>
+  <Monitoring>
+    <Monitors>
+      <UnitMonitor ID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="CertLib!Kungsbacka.Certificate.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="UnderThreshold" MonitorTypeStateID="Success" HealthState="Success"/>
+          <OperationalState ID="OverThreshold" MonitorTypeStateID="Error" HealthState="Error"/>
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>3600</IntervalSeconds>
+          <SyncTime/>
+          <ScriptName>Test-KBACertificateLifetime-rbok.ps1</ScriptName>
+          <ScriptBody>
+param($hostname, $port)
+
+$ErrorActionPreference = "Stop"
+
+$threshold = 30
+$port = [int]$port
+
+$ScomAPI = New-Object -ComObject "MOM.ScriptAPI"
+$PropertyBag = $ScomAPI.CreatePropertyBag()
+
+if ($hostname -ne "rbok.kungsbacka.se" -or $port -ne 443) {
+    $PropertyBag.AddValue("State", "UnderThreshold")
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", -1)
+    $PropertyBag.AddValue("NotAfter", "")
+    $PropertyBag.AddValue("MessageText", "Monitor ej tillämplig för $hostname:$port")
+    return $PropertyBag
+}
+
+$tcpClient = $null
+$sslStream = $null
+
+try {
+    $tcpClient = New-Object System.Net.Sockets.TcpClient($hostname, $port)
+    $sslStream = New-Object System.Net.Security.SslStream($tcpClient.GetStream(), $false, { $true })
+    $sslStream.AuthenticateAsClient($hostname)
+
+    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 $sslStream.RemoteCertificate
+    $daysRemaining = [math]::Floor(($cert.NotAfter - (Get-Date)).TotalDays)
+
+    if ($daysRemaining -le $threshold) {
+        $state = "OverThreshold"
+    }
+    else {
+        $state = "UnderThreshold"
+    }
+
+    $PropertyBag.AddValue("State", $state)
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", $daysRemaining)
+    $PropertyBag.AddValue("NotAfter", $cert.NotAfter.ToString("O"))
+    $PropertyBag.AddValue("MessageText", "Certifikat för $hostname går ut $($cert.NotAfter) (Dagar kvar: $daysRemaining)")
+}
+catch {
+    $PropertyBag.AddValue("State", "OverThreshold")
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", -1)
+    $PropertyBag.AddValue("NotAfter", "")
+    $PropertyBag.AddValue("MessageText", "Kunde inte läsa certifikat för $hostname. Fel: $($_.Exception.Message)")
+}
+finally {
+    if ($sslStream) { $sslStream.Dispose() }
+    if ($tcpClient) { $tcpClient.Dispose() }
+}
+
+$PropertyBag
+          </ScriptBody>
+          <Arguments>"$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$" "$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$"</Arguments>
+          <TimeoutSeconds>300</TimeoutSeconds>
+          <ErrorPolicy>Reset</ErrorPolicy>
+        </Configuration>
+      </UnitMonitor>
+      <UnitMonitor ID="Kungsbacka.Certificate.passboltKbaLocal.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="CertLib!Kungsbacka.Certificate.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Kungsbacka.Certificate.passboltKbaLocal.CertificateExpiry.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="UnderThreshold" MonitorTypeStateID="Success" HealthState="Success"/>
+          <OperationalState ID="OverThreshold" MonitorTypeStateID="Error" HealthState="Error"/>
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>3600</IntervalSeconds>
+          <SyncTime/>
+          <ScriptName>Test-KBACertificateLifetime-passbolt.ps1</ScriptName>
+          <ScriptBody>
+param($hostname, $port)
+
+$ErrorActionPreference = "Stop"
+
+$threshold = 30
+$port = [int]$port
+
+$ScomAPI = New-Object -ComObject "MOM.ScriptAPI"
+$PropertyBag = $ScomAPI.CreatePropertyBag()
+
+if ($hostname -ne "passbolt.kba.local" -or $port -ne 443) {
+    $PropertyBag.AddValue("State", "UnderThreshold")
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", -1)
+    $PropertyBag.AddValue("NotAfter", "")
+    $PropertyBag.AddValue("MessageText", "Monitor ej tillämplig för $hostname:$port")
+    return $PropertyBag
+}
+
+$tcpClient = $null
+$sslStream = $null
+
+try {
+    $tcpClient = New-Object System.Net.Sockets.TcpClient($hostname, $port)
+    $sslStream = New-Object System.Net.Security.SslStream($tcpClient.GetStream(), $false, { $true })
+    $sslStream.AuthenticateAsClient($hostname)
+
+    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 $sslStream.RemoteCertificate
+    $daysRemaining = [math]::Floor(($cert.NotAfter - (Get-Date)).TotalDays)
+
+    if ($daysRemaining -le $threshold) {
+        $state = "OverThreshold"
+    }
+    else {
+        $state = "UnderThreshold"
+    }
+
+    $PropertyBag.AddValue("State", $state)
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", $daysRemaining)
+    $PropertyBag.AddValue("NotAfter", $cert.NotAfter.ToString("O"))
+    $PropertyBag.AddValue("MessageText", "Certifikat för $hostname går ut $($cert.NotAfter) (Dagar kvar: $daysRemaining)")
+}
+catch {
+    $PropertyBag.AddValue("State", "OverThreshold")
+    $PropertyBag.AddValue("Hostname", $hostname)
+    $PropertyBag.AddValue("DaysRemaining", -1)
+    $PropertyBag.AddValue("NotAfter", "")
+    $PropertyBag.AddValue("MessageText", "Kunde inte läsa certifikat för $hostname. Fel: $($_.Exception.Message)")
+}
+finally {
+    if ($sslStream) { $sslStream.Dispose() }
+    if ($tcpClient) { $tcpClient.Dispose() }
+}
+
+$PropertyBag
+          </ScriptBody>
+          <Arguments>"$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$" "$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$"</Arguments>
+          <TimeoutSeconds>300</TimeoutSeconds>
+          <ErrorPolicy>Reset</ErrorPolicy>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage"/>
+      <StringResource ID="Kungsbacka.Certificate.passboltKbaLocal.CertificateExpiry.Monitor.AlertMessage"/>
+    </StringResources>
+    <NamedStrings>
+      <NamedString ID="DisplayString.Monitors.Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage"/>
+      <NamedString ID="DisplayString.Monitors.Kungsbacka.Certificate.passboltKbaLocal.CertificateExpiry.Monitor.AlertMessage"/>
+    </NamedStrings>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="SV" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Kungsbacka.Certificate.Monitoring">
+          <Name>Kungsbacka Certificate Monitoring</Name>
+          <Description>Övervakar utgångsdatumet för certifikaten rbok.kungsbacka.se och passbolt.kba.local.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor">
+          <Name>Övervakning av certifikatets utgångsdatum</Name>
+          <Description>Kontrollerar SSL-certifikatet för rbok.kungsbacka.se och larmar när det är nära utgång.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage">
+          <Name>Certifikat för rbok.kungsbacka.se är på väg att gå ut</Name>
+          <Description>Certifikat för rbok.kungsbacka.se är på väg att gå ut eller kunde inte läsas.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.passboltKbaLocal.CertificateExpiry.Monitor">
+          <Name>Övervakning av passbolt.kba.local certifikat</Name>
+          <Description>Kontrollerar SSL-certifikatet för passbolt.kba.local och larmar när det är nära utgång.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.passboltKbaLocal.CertificateExpiry.Monitor.AlertMessage">
+          <Name>Certifikat för passbolt.kba.local är på väg att gå ut</Name>
+          <Description>Certifikat för passbolt.kba.local är på väg att gå ut eller kunde inte läsas.</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>

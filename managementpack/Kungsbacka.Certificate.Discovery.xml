@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack ContentReadable="true" SchemaVersion="2.0">
+  <Manifest>
+    <Identity>
+      <ID>Kungsbacka.Certificate.Discovery</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>Kungsbacka Certificate Discovery</Name>
+    <References>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8437.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="CertLib">
+        <ID>Kungsbacka.Certificate.Library</ID>
+        <Version>1.0.0.0</Version>
+        <PublicKeyToken>0000000000000000</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions/>
+  <Monitoring>
+    <Discoveries>
+      <Discovery ID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateWatcher.Discovery" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="CertLib!Kungsbacka.Certificate.CertificateWatcher"/>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
+          <IntervalSeconds>86400</IntervalSeconds>
+          <SyncTime>00:15</SyncTime>
+          <ScriptName>Discover-KBACertificateWatcher-rbok.ps1</ScriptName>
+          <ScriptBody>
+param($SourceId, $ManagedEntityId, $TargetId)
+
+$api = New-Object -ComObject "MOM.ScriptAPI"
+$discoveryData = $api.CreateDiscoveryData(0, $SourceId, $ManagedEntityId)
+
+$hostname = "rbok.kungsbacka.se"
+$port = 443
+
+$instance = $discoveryData.CreateClassInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']$")
+$instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", "rbok.kungsbacka.se certificate")
+$instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$", $hostname)
+$instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$", $port)
+
+$discoveryData.AddInstance($instance)
+
+$relationship = $discoveryData.CreateRelationshipInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcherHosts']$")
+$relationship.Source = $TargetId
+$relationship.Target = $instance
+$discoveryData.AddInstance($relationship)
+
+$discoveryData
+          </ScriptBody>
+          <TimeoutSeconds>300</TimeoutSeconds>
+        </DataSource>
+      </Discovery>
+      <Discovery ID="Kungsbacka.Certificate.passboltKbaLocal.CertificateWatcher.Discovery" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+        <Category>Discovery</Category>
+        <DiscoveryTypes>
+          <DiscoveryClass TypeID="CertLib!Kungsbacka.Certificate.CertificateWatcher"/>
+        </DiscoveryTypes>
+        <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
+          <IntervalSeconds>86400</IntervalSeconds>
+          <SyncTime>00:45</SyncTime>
+          <ScriptName>Discover-KBACertificateWatcher-passbolt.ps1</ScriptName>
+          <ScriptBody>
+param($SourceId, $ManagedEntityId, $TargetId)
+
+$api = New-Object -ComObject "MOM.ScriptAPI"
+$discoveryData = $api.CreateDiscoveryData(0, $SourceId, $ManagedEntityId)
+
+$hostname = "passbolt.kba.local"
+$port = 443
+
+$instance = $discoveryData.CreateClassInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']$")
+$instance.AddProperty("$MPElement[Name='System!System.Entity']/DisplayName$", "passbolt.kba.local certificate")
+$instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$", $hostname)
+$instance.AddProperty("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$", $port)
+
+$discoveryData.AddInstance($instance)
+
+$relationship = $discoveryData.CreateRelationshipInstance("$MPElement[Name='CertLib!Kungsbacka.Certificate.CertificateWatcherHosts']$")
+$relationship.Source = $TargetId
+$relationship.Target = $instance
+$discoveryData.AddInstance($relationship)
+
+$discoveryData
+          </ScriptBody>
+          <TimeoutSeconds>300</TimeoutSeconds>
+        </DataSource>
+      </Discovery>
+    </Discoveries>
+  </Monitoring>
+  <Presentation/>
+  <LanguagePacks>
+    <LanguagePack ID="SV" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Kungsbacka.Certificate.Discovery">
+          <Name>Kungsbacka Certificate Discovery</Name>
+          <Description>Upptäcker certifikatsinstanserna för rbok.kungsbacka.se och passbolt.kba.local.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateWatcher.Discovery">
+          <Name>Upptäck rbok.kungsbacka.se certifikat</Name>
+          <Description>Skapar instansen av certifikatsklassen för rbok.kungsbacka.se.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.passboltKbaLocal.CertificateWatcher.Discovery">
+          <Name>Upptäck passbolt.kba.local certifikat</Name>
+          <Description>Skapar instansen av certifikatsklassen för passbolt.kba.local.</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
