@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack ContentReadable="true" SchemaVersion="2.0">
+  <Manifest>
+    <Identity>
+      <ID>Kungsbacka.Certificate.Library</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>Kungsbacka Certificate Library</Name>
+    <References>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="SC">
+        <ID>Microsoft.SystemCenter.Library</ID>
+        <Version>7.0.8437.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Kungsbacka.Certificate.CertificateWatcher" Accessibility="Public" Abstract="false" Base="System!System.LogicalEntity" Hosted="true" Singleton="false">
+          <Property ID="Hostname" Key="true" Type="string"/>
+          <Property ID="Port" Type="int"/>
+          <Property ID="ThresholdDays" Type="int"/>
+        </ClassType>
+      </ClassTypes>
+      <RelationshipTypes>
+        <RelationshipType ID="Kungsbacka.Certificate.CertificateWatcherHosts" Accessibility="Internal" Abstract="false" Base="System!System.Hosting">
+          <Source ID="Source" Type="SC!Microsoft.SystemCenter.ManagementServer" MinCardinality="1" MaxCardinality="1"/>
+          <Target ID="Target" Type="Kungsbacka.Certificate.CertificateWatcher" MinCardinality="0" MaxCardinality="n"/>
+        </RelationshipType>
+      </RelationshipTypes>
+    </EntityTypes>
+  </TypeDefinitions>
+  <Monitoring/>
+  <Presentation/>
+  <LanguagePacks>
+    <LanguagePack ID="SV" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Kungsbacka.Certificate.Library">
+          <Name>Kungsbacka Certificate Library</Name>
+          <Description>Delad klassdefinition för certifikatsövervakning.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcher">
+          <Name>SSL-certifikatinstans</Name>
+          <Description>Representerar ett övervakat SSL-certifikat med värdnamn, port och tröskelvärde.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcherHosts">
+          <Name>Managementserver till certifikat</Name>
+          <Description>Kopplar managementservern till certifikatsinstansen.</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManagementPack ContentReadable="true" SchemaVersion="2.0">
+  <Manifest>
+    <Identity>
+      <ID>Kungsbacka.Certificate.CertificateExpiry.Monitoring</ID>
+      <Version>1.0.0.0</Version>
+    </Identity>
+    <Name>Kungsbacka Certificate Expiry Monitoring</Name>
+    <References>
+      <Reference Alias="System">
+        <ID>System.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Health">
+        <ID>System.Health.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="Windows">
+        <ID>Microsoft.Windows.Library</ID>
+        <Version>7.5.8501.0</Version>
+        <PublicKeyToken>31bf3856ad364e35</PublicKeyToken>
+      </Reference>
+      <Reference Alias="CertLib">
+        <ID>Kungsbacka.Certificate.Library</ID>
+        <Version>1.0.0.0</Version>
+        <PublicKeyToken>0000000000000000</PublicKeyToken>
+      </Reference>
+    </References>
+  </Manifest>
+  <Files>
+    <File ID="TestKBACertificateLifetime_ps1" Accessibility="Public" FileName="..\\scripts\\Test-KBACertificateLifetime.ps1" HasNullStream="false">
+      <Contents>$IncludeFileContent/../scripts/Test-KBACertificateLifetime.ps1$</Contents>
+    </File>
+  </Files>
+  <TypeDefinitions/>
+  <Monitoring>
+    <Monitors>
+      <UnitMonitor ID="Kungsbacka.Certificate.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="CertLib!Kungsbacka.Certificate.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
+        <Category>AvailabilityHealth</Category>
+        <AlertSettings AlertMessage="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage">
+          <AlertOnState>Error</AlertOnState>
+          <AutoResolve>true</AutoResolve>
+          <AlertPriority>Normal</AlertPriority>
+          <AlertSeverity>Error</AlertSeverity>
+        </AlertSettings>
+        <OperationalStates>
+          <OperationalState ID="UnderThreshold" MonitorTypeStateID="Success" HealthState="Success"/>
+          <OperationalState ID="OverThreshold" MonitorTypeStateID="Error" HealthState="Error"/>
+        </OperationalStates>
+        <Configuration>
+          <IntervalSeconds>3600</IntervalSeconds>
+          <SyncTime/>
+          <ScriptName>Test-KBACertificateLifetime.ps1</ScriptName>
+          <ScriptBody>$FileContent/TestKBACertificateLifetime_ps1$</ScriptBody>
+          <Arguments>"$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Hostname$" "$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/Port$" "$Target/Property[Type='CertLib!Kungsbacka.Certificate.CertificateWatcher']/ThresholdDays$"</Arguments>
+          <TimeoutSeconds>300</TimeoutSeconds>
+          <ErrorPolicy>Reset</ErrorPolicy>
+        </Configuration>
+      </UnitMonitor>
+    </Monitors>
+  </Monitoring>
+  <Presentation>
+    <StringResources>
+      <StringResource ID="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage"/>
+    </StringResources>
+    <NamedStrings>
+      <NamedString ID="DisplayString.Monitors.Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage"/>
+    </NamedStrings>
+  </Presentation>
+  <LanguagePacks>
+    <LanguagePack ID="SV" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateExpiry.Monitoring">
+          <Name>Kungsbacka Certificate Expiry Monitoring</Name>
+          <Description>Övervakar utgångsdatumet för de certifikat som definieras i CertificateWatchers.json.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateExpiry.Monitor">
+          <Name>Övervakning av certifikatens utgångsdatum</Name>
+          <Description>Kontrollerar SSL-certifikaten och larmar när de är nära utgång enligt JSON-konfigurationen.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage">
+          <Name>Certifikat är på väg att gå ut</Name>
+          <Description>Ett certifikat är på väg att gå ut eller kunde inte läsas.</Description>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPack>
+
