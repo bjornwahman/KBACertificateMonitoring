@@ -32,7 +32,7 @@
   <TypeDefinitions/>
   <Monitoring>
     <Discoveries>
-      <Discovery ID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateWatcher.Discovery" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
+      <Discovery ID="Kungsbacka.Certificate.CertificateWatcher.Discovery" Enabled="true" Target="SC!Microsoft.SystemCenter.ManagementServer" ConfirmDelivery="false" Remotable="true" Priority="Normal">
         <Category>Discovery</Category>
         <DiscoveryTypes>
           <DiscoveryClass TypeID="CertLib!Kungsbacka.Certificate.CertificateWatcher"/>
@@ -40,7 +40,7 @@
         <DataSource ID="DS" TypeID="Windows!Microsoft.Windows.TimedPowerShell.DiscoveryProvider">
           <IntervalSeconds>86400</IntervalSeconds>
           <SyncTime>00:15</SyncTime>
-          <ScriptName>Discover-KBACertificateWatcher-rbok.ps1</ScriptName>
+          <ScriptName>Discover-KBACertificateWatcher.ps1</ScriptName>
           <ScriptBody>
 param($SourceId, $ManagedEntityId, $TargetId)
 
@@ -77,7 +77,7 @@ $discoveryData
           <Name>Kungsbacka Certificate Discovery</Name>
           <Description>Upptäcker certifikatsinstansen för rbok.kungsbacka.se.</Description>
         </DisplayString>
-        <DisplayString ElementID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateWatcher.Discovery">
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateWatcher.Discovery">
           <Name>Upptäck rbok.kungsbacka.se certifikat</Name>
           <Description>Skapar instansen av certifikatsklassen för rbok.kungsbacka.se.</Description>
         </DisplayString>

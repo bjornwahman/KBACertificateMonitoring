@@ -32,9 +32,9 @@
   <TypeDefinitions/>
   <Monitoring>
     <Monitors>
-      <UnitMonitor ID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="CertLib!Kungsbacka.Certificate.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
+      <UnitMonitor ID="Kungsbacka.Certificate.CertificateExpiry.Monitor" Accessibility="Public" Enabled="true" Target="CertLib!Kungsbacka.Certificate.CertificateWatcher" ParentMonitorID="Health!System.Health.AvailabilityState" Remotable="true" Priority="Normal" TypeID="Windows!Microsoft.Windows.PowerShell2StateMonitorType">
         <Category>AvailabilityHealth</Category>
-        <AlertSettings AlertMessage="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage">
+        <AlertSettings AlertMessage="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage">
           <AlertOnState>Error</AlertOnState>
           <AutoResolve>true</AutoResolve>
           <AlertPriority>Normal</AlertPriority>
@@ -47,7 +47,7 @@
         <Configuration>
           <IntervalSeconds>3600</IntervalSeconds>
           <SyncTime/>
-          <ScriptName>Test-KBACertificateLifetime-rbok.ps1</ScriptName>
+          <ScriptName>Test-KBACertificateLifetime.ps1</ScriptName>
           <ScriptBody>
 param($hostname, $port)
 
@@ -106,10 +106,10 @@ $PropertyBag
   </Monitoring>
   <Presentation>
     <StringResources>
-      <StringResource ID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage"/>
+      <StringResource ID="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage"/>
     </StringResources>
     <NamedStrings>
-      <NamedString ID="DisplayString.Monitors.Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage"/>
+      <NamedString ID="DisplayString.Monitors.Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage"/>
     </NamedStrings>
   </Presentation>
   <LanguagePacks>
@@ -119,11 +119,11 @@ $PropertyBag
           <Name>Kungsbacka Certificate Monitoring</Name>
           <Description>Övervakar utgångsdatumet för rbok.kungsbacka.se-certifikatet.</Description>
         </DisplayString>
-        <DisplayString ElementID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor">
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateExpiry.Monitor">
           <Name>Övervakning av certifikatets utgångsdatum</Name>
           <Description>Kontrollerar SSL-certifikatet för rbok.kungsbacka.se och larmar när det är nära utgång.</Description>
         </DisplayString>
-        <DisplayString ElementID="Kungsbacka.Certificate.rbokKungsbackaSe.CertificateExpiry.Monitor.AlertMessage">
+        <DisplayString ElementID="Kungsbacka.Certificate.CertificateExpiry.Monitor.AlertMessage">
           <Name>Certifikat för rbok.kungsbacka.se är på väg att gå ut</Name>
           <Description>Certifikat för rbok.kungsbacka.se är på väg att gå ut eller kunde inte läsas.</Description>
         </DisplayString>
